@@ -7,6 +7,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Response as ResponseFacade;
 
 class CheckRole
 {
@@ -22,7 +24,7 @@ class CheckRole
     {
         // Verifica que el usuario esté autenticado usando Auth facade
         if (!Auth::check()) {
-            return redirect()->route('login');
+            return Redirect::route('login');
         }
 
         // Convierte el parámetro de roles en un array si es string
@@ -30,7 +32,7 @@ class CheckRole
 
         // Verifica si el usuario tiene alguno de los roles permitidos
         if (!$this->userHasAnyRole($roles)) {
-            abort(403, 'No tienes permiso para acceder a esta página.');
+            return ResponseFacade::make('No tienes permiso para acceder a esta página.', 403);
         }
 
         return $next($request);
@@ -47,11 +49,9 @@ class CheckRole
         // Usando Auth facade explícitamente
         //$user = User::where('id', Auth::id())->with('roles')->first();
 
-
         return Auth::user()->role->whereIn('description', $roles)->count() > 0;
 
         // Alternativa si usas una columna 'role' directamente en la tabla users
         // return in_array(Auth::user()->role, $roles);
     }
 }
-
